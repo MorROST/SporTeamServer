@@ -10,5 +10,6 @@ package sporteamserver;
  * @author Mor Aroesti
  */
 public class NewClass {
+    int i = 8;
     
 }
