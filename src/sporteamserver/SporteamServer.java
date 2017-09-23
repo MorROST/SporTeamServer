@@ -9,12 +9,13 @@ package sporteamserver;
  *
  * @author Mor Aroesti
  */
-public class NewClass {
-    int i = 8;
+public class SporteamServer {
 
-    public NewClass() {
-        System.out.println("Hello Yoni");
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        // TODO code application logic here
     }
-    
     
 }
