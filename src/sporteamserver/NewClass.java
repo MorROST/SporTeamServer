@@ -14,6 +14,7 @@ public class NewClass {
 
     public NewClass() {
         System.out.println("Hello Yoni");
+        System.out.println(1+1);
     }
     
     
