@@ -16,6 +16,7 @@ public class SporteamServer {
      */
     public static void main(String[] args) {
         NewClass a = new NewClass();
+        Printers p = new Printers();
     }
     
 }
