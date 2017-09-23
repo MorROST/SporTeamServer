@@ -12,6 +12,6 @@ package sporteamserver;
 public class Printers {
     public Printers()
     {
-        System.out.println("biatchhhhhh");
+        System.out.println("biatchhhhhhh");
     }
 }
