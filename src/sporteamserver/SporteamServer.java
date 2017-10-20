@@ -15,8 +15,9 @@ public class SporteamServer {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        NewClass a = new NewClass();
-        Printers p = new Printers();
+        ServerTest server = new ServerTest(54321);
+        server.listen();
+        
     }
     
 }
