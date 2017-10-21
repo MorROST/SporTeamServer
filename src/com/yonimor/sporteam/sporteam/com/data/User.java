@@ -5,11 +5,13 @@
  */
 package com.yonimor.sporteam.sporteam.com.data;
 
+import java.io.Serializable;
+
 /**
  *
  * @author TheYoni
  */
-public class User {
+public class User implements Serializable{
     private String email,password, gender, userName, phone;
     private int age;
     

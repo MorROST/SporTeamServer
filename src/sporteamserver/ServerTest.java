@@ -27,7 +27,7 @@ public class ServerTest {
         try {
             db = new DB();
             serverSocket  = new ServerSocket(port);
-            System.out.println("Test Server is waiting on port 54321");
+            System.out.println("Test Server is waiting on port 30545");
         } catch (IOException ex) {
             System.out.println("server problem");
         }
