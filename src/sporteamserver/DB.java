@@ -5,6 +5,7 @@
  */
 package sporteamserver;
 
+import com.yonimor.sporteam.sporteam.com.data.ConnectionData;
 import com.yonimor.sporteam.sporteam.com.data.User;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -37,8 +38,6 @@ public class DB {
     public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?)";
     
     
-    
-    
     public DB()
     {
         try {
@@ -49,7 +48,7 @@ public class DB {
         }
     }
     
-    public boolean LogIn(String email, String password)
+    public int LogIn(String email, String password)
     {
         Statement st;
         String emailReturn;
@@ -68,18 +67,18 @@ public class DB {
                 {
                     rs.close();
                     conn.close();
-                    return true;
+                    return ConnectionData.OK;
                 }
             }
             
-            return false;
+            return ConnectionData.NOT_OK;
             
         } catch (SQLException ex) {
-            return false;
+            return ConnectionData.SOMTHING_WRONG;
         }
     }
     
-    public boolean Register(User u)
+    public int Register(User u)
     {
         try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
@@ -91,12 +90,11 @@ public class DB {
             pstUsers.execute();
             
             conn.close();
-            return true;
+            return ConnectionData.OK;
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
-            
+            return ConnectionData.SOMTHING_WRONG;
         }
-        return false;
     }
     
 }

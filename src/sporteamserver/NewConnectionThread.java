@@ -56,13 +56,13 @@ public class NewConnectionThread extends Thread{
                     case ConnectionData.LOGIN:
                     {
                         result = (ServerTest.db.LogIn(requestCD.getEmail(), requestCD.getPassword()));
-                        responseCD.setWorked((boolean)result);
+                        responseCD.setWorked((int)result);
                         break;
                     }
                     case ConnectionData.REGISTER:
                     {
                         result = (ServerTest.db.Register(requestCD.getUser()));
-                        responseCD.setWorked((boolean)result);
+                        responseCD.setWorked((int)result);
                         break;
                     }
                 }
