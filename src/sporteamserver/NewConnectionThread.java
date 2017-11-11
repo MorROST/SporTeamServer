@@ -65,6 +65,12 @@ public class NewConnectionThread extends Thread{
                         responseCD.setWorked((int)result);
                         break;
                     }
+                    case ConnectionData.INSERTGAME:
+                    {
+                        result = (ServerTest.db.InsertGame(requestCD.getGame()));
+                        responseCD.setWorked((int)result);
+                        break;
+                    }
                 }
                 /////////return the response to the client
                 oos.writeObject(responseCD);

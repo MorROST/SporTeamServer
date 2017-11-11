@@ -5,8 +5,7 @@
  */
 package sporteamserver;
 
-import com.yonimor.sporteam.sporteam.com.data.ConnectionData;
-import com.yonimor.sporteam.sporteam.com.data.User;
+import com.yonimor.sporteam.sporteam.com.data.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -33,9 +32,10 @@ public class DB {
     public static Connection conn;
     public static Statement statement;
     public static PreparedStatement pstUsers;
-    public static PreparedStatement pstRecipes;
+    public static PreparedStatement pstGame;
     
     public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?)";
+    public static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?)";
     
     
     public DB()
@@ -43,6 +43,7 @@ public class DB {
         try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             pstUsers = conn.prepareStatement(InsertUserSQL);
+            pstGame = conn.prepareStatement(InsertGameSQL);
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -90,11 +91,34 @@ public class DB {
             pstUsers.execute();
             
             conn.close();
+            System.out.println(u.getUserName() + " added");
             return ConnectionData.OK;
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
             return ConnectionData.SOMTHING_WRONG;
         }
+    }
+    
+    public int InsertGame(Game g)
+    {
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            pstGame.setString(2, g.getCreatedBy());
+            pstGame.setString(3, g.getSportType());
+            pstGame.setString(4, g.getCity());
+            pstGame.setString(5, g.getTime());
+            pstGame.setString(6, g.getDate());
+            pstGame.setInt(7, g.getNumberOfPlayers());
+            pstGame.setString(6, g.getLoaction());
+            pstGame.execute();
+            
+            conn.close();
+            return ConnectionData.OK;
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+            return ConnectionData.SOMTHING_WRONG;
+        }
+            
     }
     
 }

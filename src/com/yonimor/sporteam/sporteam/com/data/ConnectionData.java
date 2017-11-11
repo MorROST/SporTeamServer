@@ -19,11 +19,21 @@ public class ConnectionData implements Serializable{
     public static final int SOMTHING_WRONG = 3;
     public static final int LOGIN = 4;
     public static final int REGISTER = 5;
+    public static final int INSERTGAME = 6;
     
     private int requestCode;
     private String email, password;
     private int worked;
     private User user;
+    private Game game;
+
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
 
     public User getUser() {
         return user;
