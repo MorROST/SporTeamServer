@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -119,6 +120,52 @@ public class DB {
             return ConnectionData.SOMTHING_WRONG;
         }
             
+    }
+    
+    public ArrayList GetGames()
+    {
+        ArrayList<Game> arr = new ArrayList<Game>();
+        Statement st;
+        try {
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        st = conn.createStatement();
+        Statement stselect = conn.createStatement();
+        ResultSet rs = stselect.executeQuery("select * from SPORTEAMGAMES");
+        while (rs.next())
+            {
+                Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
+                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("Location"), rs.getInt("NumberOfParticipant"));
+                arr.add(g);
+                rs.close();
+                conn.close();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return arr;
+    }
+    
+    public ArrayList UpdateGames(int lastGameAtClient)
+    {
+        ArrayList<Game> arr = new ArrayList<Game>();
+        Statement st;
+        try {
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        st = conn.createStatement();
+        Statement stselect = conn.createStatement();
+        ResultSet rs = stselect.executeQuery("select * from SPORTEAMGAMES where GameNumber > 'lastGameAtClient'");
+        while (rs.next())
+            {
+                Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
+                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("Location"), rs.getInt("NumberOfParticipant"));
+                arr.add(g);
+                rs.close();
+                conn.close();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return arr;
     }
     
 }
