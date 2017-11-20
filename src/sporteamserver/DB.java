@@ -36,8 +36,9 @@ public class DB {
     public static PreparedStatement pstGame;
     
     public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?)";
-    public static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?)";
+    public static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?,?)";
     
+    private int lastgame=1;
     
     public DB()
     {
@@ -45,6 +46,7 @@ public class DB {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             pstUsers = conn.prepareStatement(InsertUserSQL);
             pstGame = conn.prepareStatement(InsertGameSQL);
+            
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -103,14 +105,16 @@ public class DB {
     public int InsertGame(Game g)
     {
         try {
+            lastgame++;
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            pstGame.setInt(1, lastgame);
             pstGame.setString(2, g.getCreatedBy());
             pstGame.setString(3, g.getSportType());
-            pstGame.setString(4, g.getCity());
-            pstGame.setString(5, g.getTime());
-            pstGame.setString(6, g.getDate());
+            pstGame.setString(4, g.getTime());
+            pstGame.setString(5, g.getDate());
+            pstGame.setString(6, g.getCity());
             pstGame.setInt(7, g.getNumberOfPlayers());
-            pstGame.setString(6, g.getLoaction());
+            pstGame.setString(8, g.getLoaction());
             pstGame.execute();
             
             conn.close();
@@ -134,11 +138,12 @@ public class DB {
         while (rs.next())
             {
                 Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
-                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("Location"), rs.getInt("NumberOfParticipant"));
+                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("GameLocation"), rs.getInt("NumberOfParticipant"));
                 arr.add(g);
-                rs.close();
-                conn.close();
+                
             }
+        rs.close();
+        conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
         }

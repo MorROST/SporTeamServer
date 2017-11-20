@@ -86,7 +86,7 @@ public class NewConnectionThread extends Thread{
                 }
                 /////////return the response to the client
                 oos.writeObject(responseCD);
-               
+                System.out.println("request code "+ requestCD.getRequestCode() + " sent");
             }
                 
          }catch (IOException ex) {

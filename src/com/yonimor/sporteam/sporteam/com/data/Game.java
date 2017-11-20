@@ -5,11 +5,13 @@
  */
 package com.yonimor.sporteam.sporteam.com.data;
 
+import java.io.Serializable;
+
 /**
  *
  * @author TheYoni
  */
-public class Game {
+public class Game implements Serializable{
     String createdBy, sportType,city,time,date,loaction;
     int numberOfPlayers;
 
