@@ -52,11 +52,12 @@ public class DB {
         }
     }
     
-    public int LogIn(String email, String password)
+    public String LogIn(String email, String password)
     {
         Statement st;
         String emailReturn;
         String passwordReturn;
+        String userNameReturn;
         
         try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
@@ -65,20 +66,21 @@ public class DB {
             ResultSet rs = stselect.executeQuery("select * from SporTeamUsers");
             while (rs.next())
             {
-                emailReturn = rs.getString("UserName");
+                emailReturn = rs.getString("EMAIL");
                 passwordReturn = rs.getString("Password");
                 if (email.equals(emailReturn) && password.equals(passwordReturn))
                 {
+                    userNameReturn = rs.getString("UserName");
                     rs.close();
                     conn.close();
-                    return ConnectionData.OK;
+                    return userNameReturn;
                 }
             }
             
-            return ConnectionData.NOT_OK;
+            return "";
             
         } catch (SQLException ex) {
-            return ConnectionData.SOMTHING_WRONG;
+            return "";
         }
     }
     

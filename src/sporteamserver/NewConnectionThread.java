@@ -56,7 +56,7 @@ public class NewConnectionThread extends Thread{
                     case ConnectionData.LOGIN:
                     {
                         result = (ServerTest.db.LogIn(requestCD.getEmail(), requestCD.getPassword()));
-                        responseCD.setWorked((int)result);
+                        responseCD.setName((String)result);
                         break;
                     }
                     case ConnectionData.REGISTER:

@@ -22,6 +22,7 @@ public class ConnectionData implements Serializable{
     public static final int INSERTGAME = 6;
     public static final int ALLGAMES = 7;
     public static final int UPDATEGAMES = 8;
+   
     
     private int requestCode;
     private String email, password;
@@ -30,6 +31,15 @@ public class ConnectionData implements Serializable{
     private Game game;
     private ArrayList arrayList;
     private int lastGameAtClient;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public int getLastGameAtClient() {
         return lastGameAtClient;
