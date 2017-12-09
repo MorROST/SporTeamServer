@@ -32,6 +32,7 @@ public class ConnectionData implements Serializable{
     private ArrayList arrayList;
     private int lastGameAtClient;
     private String name;
+    
 
     public String getName() {
         return name;

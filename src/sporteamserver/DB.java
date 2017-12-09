@@ -12,10 +12,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 
 
 
@@ -35,7 +39,7 @@ public class DB {
     public static PreparedStatement pstUsers;
     public static PreparedStatement pstGame;
     
-    public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?)";
+    public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?,?)";
     public static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?,?)";
     
     private int lastgame=1;
@@ -46,9 +50,14 @@ public class DB {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             pstUsers = conn.prepareStatement(InsertUserSQL);
             pstGame = conn.prepareStatement(InsertGameSQL);
-            
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT GameNumber FROM SPORTEAMGAMES ORDER BY GameNumber DESC");
+            rs.next();
+            lastgame = rs.getInt("GameNumber");
+            DeleteOldGames();
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+            lastgame=0;
         }
     }
     
@@ -93,6 +102,7 @@ public class DB {
             pstUsers.setString(3, u.getEmail());
             pstUsers.setString(4, u.getGender());
             pstUsers.setInt(5, u.getAge());
+            pstUsers.setString(6, u.getPhone());
             pstUsers.execute();
             
             conn.close();
@@ -128,7 +138,7 @@ public class DB {
             
     }
     
-    public ArrayList GetGames()
+    public ArrayList GetGames(int gameNumber)
     {
         ArrayList<Game> arr = new ArrayList<Game>();
         Statement st;
@@ -136,11 +146,12 @@ public class DB {
         conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         st = conn.createStatement();
         Statement stselect = conn.createStatement();
-        ResultSet rs = stselect.executeQuery("select * from SPORTEAMGAMES");
+        ResultSet rs = stselect.executeQuery("select * from SPORTEAMGAMES where GAMENUMBER > " + gameNumber);
         while (rs.next())
             {
                 Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
                 rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("GameLocation"), rs.getInt("NumberOfParticipant"));
+                g.setGameNumber(rs.getInt("GAMENUMBER"));
                 arr.add(g);
                 
             }
@@ -152,27 +163,43 @@ public class DB {
         return arr;
     }
     
-    public ArrayList UpdateGames(int lastGameAtClient)
+    public void DeleteOldGames()
     {
-        ArrayList<Game> arr = new ArrayList<Game>();
-        Statement st;
-        try {
-        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-        st = conn.createStatement();
-        Statement stselect = conn.createStatement();
-        ResultSet rs = stselect.executeQuery("select * from SPORTEAMGAMES where GameNumber > 'lastGameAtClient'");
-        while (rs.next())
-            {
-                Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
-                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("Location"), rs.getInt("NumberOfParticipant"));
-                arr.add(g);
-                rs.close();
-                conn.close();
+        Timer timer = new Timer ();
+        TimerTask hourlyTask = new TimerTask () {
+        @Override
+        public void run () {
+            DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+            Calendar cal = Calendar.getInstance();
+            String[] timeParts=null, DatePartsLocal,DatePartsDB;
+            Statement st;
+            try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            st = conn.createStatement();
+            String myDate = df.format(cal.getTime());
+            PreparedStatement stselect = conn.prepareStatement("select * from SPORTEAMGAMES where GameDate = ?", ResultSet.TYPE_SCROLL_SENSITIVE,
+          ResultSet.CONCUR_UPDATABLE);
+            stselect.setObject(1, myDate);
+            DatePartsLocal = myDate.split("/");
+            
+            ResultSet rs = stselect.executeQuery();
+            while (rs.next())
+                {
+                    timeParts = rs.getString("GameTime").split(":");
+                    if(cal.get(Calendar.HOUR_OF_DAY)>Integer.parseInt(timeParts[0]))
+                    {
+                        rs.deleteRow();
+                    }  
+                }
+            rs.close();
+            conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return arr;
+    };
+    // schedule the task to run starting now and then every hour...
+    timer.schedule (hourlyTask, 0l, 1000*60*60);
     }
     
 }

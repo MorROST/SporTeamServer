@@ -73,16 +73,11 @@ public class NewConnectionThread extends Thread{
                     }
                     case ConnectionData.ALLGAMES:
                     {
-                        result = (ServerTest.db.GetGames());
+                        result = (ServerTest.db.GetGames(requestCD.getLastGameAtClient()));
                         responseCD.setArrayList((ArrayList)result);
                         break;
                     }
-                    case ConnectionData.UPDATEGAMES:
-                    {
-                        result = (ServerTest.db.UpdateGames(requestCD.getLastGameAtClient()));
-                        responseCD.setArrayList((ArrayList)result);
-                        break;
-                    }
+                    
                 }
                 /////////return the response to the client
                 oos.writeObject(responseCD);
