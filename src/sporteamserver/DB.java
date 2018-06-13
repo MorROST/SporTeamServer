@@ -6,6 +6,17 @@
 package sporteamserver;
 
 import com.yonimor.sporteam.sporteam.com.data.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+
+import java.io.FileOutputStream;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,11 +26,16 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+
+
+
 
 
 
@@ -38,9 +54,11 @@ public class DB {
     public static Statement statement;
     public static PreparedStatement pstUsers;
     public static PreparedStatement pstGame;
+    public static PreparedStatement pstMessaging;
     
     public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?,?)";
     public static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?,?)";
+    public static final String InsertMessagingSQL = "INSERT into MESSAGING values(?,?)";
     
     private int lastgame=1;
     
@@ -50,6 +68,7 @@ public class DB {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             pstUsers = conn.prepareStatement(InsertUserSQL);
             pstGame = conn.prepareStatement(InsertGameSQL);
+            pstMessaging = conn.prepareStatement(InsertMessagingSQL);
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("SELECT GameNumber FROM SPORTEAMGAMES ORDER BY GameNumber DESC");
             rs.next();
@@ -200,6 +219,62 @@ public class DB {
     };
     // schedule the task to run starting now and then every hour...
     timer.schedule (hourlyTask, 0l, 1000*60*60);
+    }
+    
+    public int SaveProfileImage(String image, String name)
+    {
+        try {
+            byte[] btDataFile = new sun.misc.BASE64Decoder().decodeBuffer(image);
+            String location = "images/" + name +".png";
+            File of = new File(location);
+            FileOutputStream osf = new FileOutputStream(of);
+            osf.write(btDataFile);
+            osf.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 1;
+    }
+    
+    public String GetProfilePicture(String name)
+    {
+        try {
+            String dir = "images/" + name + ".png";
+            File myFile = new File(dir);
+            FileInputStream imageInFile = new FileInputStream(myFile);
+            byte imageData[] = new byte[(int) myFile.length()];
+            imageInFile.read(imageData);
+            String imageDataString;
+            imageDataString = Base64.getEncoder().encodeToString(imageData);
+            return imageDataString;
+            /*ByteArrayOutputStream baos=new ByteArrayOutputStream();
+            Path path = Paths.get(dir);
+            byte[] image = Files.readAllBytes(path);
+            String base64Code = Base64.getEncoder().encodeToString(image);
+            return base64Code;*/
+ 
+        } catch (IOException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        }
+        
+    }
+    
+    public int InsertToken(String name, String token)
+    {
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            pstMessaging.setString(1, name);
+            pstMessaging.setString(2, token);
+            pstGame.execute();
+            
+            conn.close();
+            return ConnectionData.OK;
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+            return ConnectionData.SOMTHING_WRONG;
+        }
+            
     }
     
 }

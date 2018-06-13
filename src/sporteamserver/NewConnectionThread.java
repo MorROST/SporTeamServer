@@ -6,6 +6,8 @@
 package sporteamserver;
 
 import com.yonimor.sporteam.sporteam.com.data.ConnectionData;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -13,6 +15,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,7 +80,22 @@ public class NewConnectionThread extends Thread{
                         responseCD.setArrayList((ArrayList)result);
                         break;
                     }
-                    
+                    case ConnectionData.UPLOADIMAGE:
+                    {
+                        result = (ServerTest.db.SaveProfileImage(requestCD.getStringImage(),requestCD.getName()));
+                        responseCD.setWorked((int)result);
+                        break;
+                    }
+                    case ConnectionData.GETIMAGE:
+                    {
+                        result = (ServerTest.db.GetProfilePicture(requestCD.getName()));
+                        responseCD.setStringImage((String)result);
+                        break;
+                    }
+                    case ConnectionData.SETTOKEN:
+                    result = (ServerTest.db.InsertToken(requestCD.getName(), requestCD.getToken()));
+                    responseCD.setStringImage((String)result);
+                    break;
                 }
                 /////////return the response to the client
                 oos.writeObject(responseCD);

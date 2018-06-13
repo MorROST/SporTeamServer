@@ -1,20 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.yonimor.sporteam.sporteam.com.data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
- *
- * @author TheYoni
+ * Created by TheYoni on 11/11/2017.
  */
-public class Game implements Serializable{
+
+public class Game implements Serializable {
     String createdBy, sportType,city,time,date,loaction;
     int numberOfPlayers;
     int gameNumber;
+
+
+
+    ArrayList<String> players;
 
     public Game(String createdBy, String sportType, String city, String time, String date, String loaction, int numberOfPlayers)
     {
@@ -25,6 +25,7 @@ public class Game implements Serializable{
         this.date = date;
         this.loaction = loaction;
         this.numberOfPlayers = numberOfPlayers;
+        this.players = new ArrayList<String>();
     }
 
     public int getGameNumber() {
@@ -90,5 +91,16 @@ public class Game implements Serializable{
     public void setNumberOfPlayers(int numberOfPlayers) {
         this.numberOfPlayers = numberOfPlayers;
     }
-}
 
+    public void AddPlayer(String playerName)
+    {
+        this.players.add(playerName);
+    }
+    public void RemovePlayer(String playerName)
+    {
+        this.players.remove(playerName);
+    }
+    public ArrayList<String> getPlayers() {
+        return players;
+    }
+}
