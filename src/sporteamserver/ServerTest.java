@@ -29,7 +29,7 @@ public class ServerTest {
             serverSocket  = new ServerSocket(port);
             System.out.println("Test Server is waiting on port 30545");
         } catch (IOException ex) {
-            System.out.println("server problem");
+            System.out.println("server problem" + ex.getMessage());
         }
     }
     

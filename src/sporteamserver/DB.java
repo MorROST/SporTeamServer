@@ -427,4 +427,58 @@ public class DB {
         }
         return returnedResult;
     }
+	
+	     public ArrayList GetMyFilteredGames(String fname)
+    {
+        ArrayList<Game> arr = new ArrayList<Game>();
+        Statement st;
+        try {
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        st = conn.createStatement();
+        Statement stselect = conn.createStatement();
+        ResultSet rs = stselect.executeQuery("select * from SPORTEAMGAMES where CREATEDBY = '" + fname + "'");
+        while (rs.next())
+            {
+                Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
+                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("GameLocation"), rs.getInt("NumberOfParticipant"));
+                g.setGameNumber(rs.getInt("GAMENUMBER"));
+                arr.add(g);
+                
+            }
+        rs.close();
+        conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return arr;
+    }
+	
+	     public ArrayList GetMyRegisterdGames(String email)
+    {
+        ArrayList<Game> arr = new ArrayList<Game>();
+        Statement st;
+        try {
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        st = conn.createStatement();
+        Statement stselect = conn.createStatement();
+        ResultSet rs = stselect.executeQuery("Select *\n" +
+                                            "from sporteamusers su\n" +
+                                            "join sporteamgroups stg on stg.EMAIL=su.EMAIL\n" +
+                                            "join sporteamgames stga on stga.GAMENUMBER = stg.GAMENUMBER \n" +
+                                            "where su.EMAIL= " + "'" + email +"'" );
+        while (rs.next())
+            {
+                Game g = new Game(rs.getString("CreatedBy"), rs.getString("SportType"), rs.getString("City"),
+                rs.getString("GameTime"), rs.getString("GameDate"), rs.getString("GameLocation"), rs.getInt("NumberOfParticipant"));
+                g.setGameNumber(rs.getInt("GAMENUMBER"));
+                arr.add(g);
+                
+            }
+        rs.close();
+        conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return arr;
+    } 
 }

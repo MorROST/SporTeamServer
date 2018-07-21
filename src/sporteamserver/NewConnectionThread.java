@@ -108,6 +108,18 @@ public class NewConnectionThread extends Thread{
                     }
                     break;
                     }
+					case ConnectionData.ALLMYGAMES_FILTER:
+                    {
+                        result = (ServerTest.db.GetMyFilteredGames(requestCD.getName()));
+                        responseCD.setArrayList((ArrayList)result);
+                        break;
+                    }
+                    case ConnectionData.MYREGISTEREDGAMES_FILTER:
+                    {
+                        result = (ServerTest.db.GetMyRegisterdGames(requestCD.getName()));
+                        responseCD.setArrayList((ArrayList)result);
+                        break;
+                    }                    
                 }
                 /////////return the response to the client
                 oos.writeObject(responseCD);
