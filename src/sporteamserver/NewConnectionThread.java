@@ -93,13 +93,24 @@ public class NewConnectionThread extends Thread{
                         break;
                     }
                     case ConnectionData.SETTOKEN:
-                    result = (ServerTest.db.InsertToken(requestCD.getName(), requestCD.getToken()));
-                    responseCD.setStringImage((String)result);
+                    {
+                    result = (ServerTest.db.InsertToken(requestCD.getEmail(), requestCD.getToken()));
+                    responseCD.setWorked((int)result);
                     break;
+                    }
+                    case ConnectionData.JOINGAME:
+                    {
+                    result = (ServerTest.db.InsertToGroupTable(requestCD.getEmail(), requestCD.getGameNumber()));
+                    responseCD.setWorked((int)result);
+                    if ((int) result == ConnectionData.OK)
+                    {
+                        ServerTest.db.NotifyToOther(requestCD.getName(), requestCD.getGameNumber(), 0);
+                    }
+                    break;
+                    }
                 }
                 /////////return the response to the client
                 oos.writeObject(responseCD);
-                System.out.println("request code "+ requestCD.getRequestCode() + " sent");
             }
                 
          }catch (IOException ex) {

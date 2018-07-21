@@ -55,11 +55,21 @@ public class DB {
     public static PreparedStatement pstUsers;
     public static PreparedStatement pstGame;
     public static PreparedStatement pstMessaging;
+    public static PreparedStatement pstUpdateMessaging;
+    public static PreparedStatement pstSetToGroupTable;
     
-    public static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?,?)";
-    public static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?,?)";
-    public static final String InsertMessagingSQL = "INSERT into MESSAGING values(?,?)";
+    private static final int constLogin = 1;
+    private static final int constRegister = 2;
+    private static final int constToken = 3;
+    private static final int constGroupTable = 4;
     
+    private static final String InsertUserSQL = "INSERT into SPORTEAMUSERS values(?,?,?,?,?,?)";
+    private static final String InsertGameSQL = "INSERT into SPORTEAMGAMES values(?,?,?,?,?,?,?,?)";
+    private static final String InsertMessagingSQL = "INSERT into MESSAGING values(?,?)";
+    private static final String UpdateMessagingSQL = "UPDATE MESSAGING set EMAIL = ?, Token = ? WHERE EMAIL = ?";
+    private static final String InsertGroupSQL = "INSERT into SPORTEAMGROUPS values(?,?)";
+    
+    private ArrayList<String> extraParameters = new ArrayList<String>();
     private int lastgame=1;
     
     public DB()
@@ -69,6 +79,8 @@ public class DB {
             pstUsers = conn.prepareStatement(InsertUserSQL);
             pstGame = conn.prepareStatement(InsertGameSQL);
             pstMessaging = conn.prepareStatement(InsertMessagingSQL);
+            pstUpdateMessaging = conn.prepareStatement(UpdateMessagingSQL);
+            pstSetToGroupTable = conn.prepareStatement(InsertGroupSQL);
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("SELECT GameNumber FROM SPORTEAMGAMES ORDER BY GameNumber DESC");
             rs.next();
@@ -82,54 +94,39 @@ public class DB {
     
     public String LogIn(String email, String password)
     {
-        Statement st;
-        String emailReturn;
-        String passwordReturn;
-        String userNameReturn;
-        
-        try {
-            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            st = conn.createStatement();
-            Statement stselect = conn.createStatement();
-            ResultSet rs = stselect.executeQuery("select * from SporTeamUsers");
-            while (rs.next())
-            {
-                emailReturn = rs.getString("EMAIL");
-                passwordReturn = rs.getString("Password");
-                if (email.equals(emailReturn) && password.equals(passwordReturn))
-                {
-                    userNameReturn = rs.getString("UserName");
-                    rs.close();
-                    conn.close();
-                    return userNameReturn;
-                }
-            }
-            
-            return "";
-            
-        } catch (SQLException ex) {
-            return "";
+        if(IsAlreadyExiest("", password, email, 0, constLogin) == ConnectionData.OK)
+        {
+            String userNameReturn = extraParameters.get(0);
+            extraParameters.clear();
+            return userNameReturn;
         }
+        return "";
     }
     
     public int Register(User u)
     {
-        try {
-            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            pstUsers.setString(1, u.getUserName());
-            pstUsers.setString(2, u.getPassword());
-            pstUsers.setString(3, u.getEmail());
-            pstUsers.setString(4, u.getGender());
-            pstUsers.setInt(5, u.getAge());
-            pstUsers.setString(6, u.getPhone());
-            pstUsers.execute();
-            
-            conn.close();
-            System.out.println(u.getUserName() + " added");
-            return ConnectionData.OK;
-        } catch (SQLException ex) {
-            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
-            return ConnectionData.SOMTHING_WRONG;
+        if(IsAlreadyExiest("", "", u.getEmail(), 0, constRegister) == ConnectionData.OK)
+        {
+            return ConnectionData.NOT_OK;
+        }
+        else{
+            try {
+                conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+                pstUsers.setString(1, u.getUserName());
+                pstUsers.setString(2, u.getPassword());
+                pstUsers.setString(3, u.getEmail());
+                pstUsers.setString(4, u.getGender());
+                pstUsers.setInt(5, u.getAge());
+                pstUsers.setString(6, u.getPhone());
+                pstUsers.execute();
+
+                conn.close();
+                System.out.println(u.getUserName() + " added");
+                return ConnectionData.OK;
+            } catch (SQLException ex) {
+                Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+                return ConnectionData.SOMTHING_WRONG;
+            }
         }
     }
     
@@ -149,7 +146,13 @@ public class DB {
             pstGame.execute();
             
             conn.close();
-            return ConnectionData.OK;
+            int result = InsertToGroupTable(g.getCreatedBy(), lastgame);
+            if (result == ConnectionData.OK)
+            {
+                return ConnectionData.OK;
+            }
+            else 
+                return ConnectionData.SOMTHING_WRONG;
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
             return ConnectionData.SOMTHING_WRONG;
@@ -247,11 +250,7 @@ public class DB {
             String imageDataString;
             imageDataString = Base64.getEncoder().encodeToString(imageData);
             return imageDataString;
-            /*ByteArrayOutputStream baos=new ByteArrayOutputStream();
-            Path path = Paths.get(dir);
-            byte[] image = Files.readAllBytes(path);
-            String base64Code = Base64.getEncoder().encodeToString(image);
-            return base64Code;*/
+
  
         } catch (IOException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
@@ -260,21 +259,172 @@ public class DB {
         
     }
     
-    public int InsertToken(String name, String token)
+    public int InsertToken(String email, String token)
     {
-        try {
+        int isNew = IsAlreadyExiest("", "", email, 0, constToken);
+        if (isNew == ConnectionData.NOT_OK)
+        {
+            try {
+                conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+                pstMessaging.setString(1, email);
+                pstMessaging.setString(2, token);
+                pstMessaging.execute();
+
+                conn.close();
+                return ConnectionData.OK;
+            } catch (SQLException ex) {
+                Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+                return ConnectionData.SOMTHING_WRONG;
+            }
+        }
+        else if(isNew == ConnectionData.OK)
+        {
+            try {
+                conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);                
+                pstUpdateMessaging.setString(1, email);
+                pstUpdateMessaging.setString(2, token);
+                pstUpdateMessaging.setString(3, email);
+                pstUpdateMessaging.executeUpdate();
+                return ConnectionData.OK;
+            } catch (SQLException ex) {
+                Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+                return ConnectionData.SOMTHING_WRONG;
+            }
+        }
+        return ConnectionData.SOMTHING_WRONG;
+    }
+    
+    public int InsertToGroupTable(String email, int gameNumber)
+    {
+        int isNew = IsAlreadyExiest("", "", email, gameNumber, constGroupTable);
+        if (isNew == ConnectionData.NOT_OK)
+            try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            pstMessaging.setString(1, name);
-            pstMessaging.setString(2, token);
-            pstGame.execute();
+            pstSetToGroupTable.setString(1, email);
+            pstSetToGroupTable.setInt(2, gameNumber);
+            pstSetToGroupTable.execute();
             
             conn.close();
             return ConnectionData.OK;
         } catch (SQLException ex) {
             Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
-            return ConnectionData.SOMTHING_WRONG;
         }
-            
+        else if (isNew == ConnectionData.OK)
+        {
+            return ConnectionData.NOT_OK;
+        }
+        return ConnectionData.SOMTHING_WRONG;
     }
     
+    public void NotifyToOther(String name, int gameNumber, int reason)
+    {
+        Statement stselectGame;
+        Statement stselectToken;
+        try {
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        ResultSet result = null;
+        ResultSet rs = null;
+        ArrayList toList = new ArrayList();
+        String OtherPlayer = "";
+        String to = "";
+        String title = name + " has joind the game";
+        stselectGame = conn.createStatement();
+        stselectToken = conn.createStatement();
+        rs = stselectGame.executeQuery("select * from SporTeamGroups where GameNumber = " + gameNumber);
+        while (rs.next())
+            {
+                OtherPlayer = rs.getString("EMAIL");
+                result = stselectToken.executeQuery("select TOKEN from Messaging where EMAIL = '" + OtherPlayer + "'");
+                result.next();
+                to = result.getString("TOKEN");
+                Notification.SendNotification(to, title);
+            }
+        result.close();
+        rs.close();
+        conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
+    public int IsAlreadyExiest(String name, String password, String email, int gameNumber, int whatToCheck)
+    {
+        Statement st;
+        int returnedResult = ConnectionData.NOT_OK;
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            st = conn.createStatement();
+            Statement stselect = conn.createStatement();
+            switch (whatToCheck)
+            {
+                case constLogin:
+                {
+                    ResultSet rs = stselect.executeQuery("select * from SporTeamUsers");
+                    while (rs.next())
+                    {
+                        String emailReturn = rs.getString("EMAIL");
+                        String passwordReturn = rs.getString("Password");
+                        if (email.equals(emailReturn) && password.equals(passwordReturn))
+                        {
+                            String userNameReturn = rs.getString("UserName");
+                            extraParameters.add(userNameReturn);
+                            rs.close();
+                            conn.close();
+                            returnedResult = ConnectionData.OK;
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case constRegister:
+                {
+                    ResultSet rs = stselect.executeQuery("select * from SporTeamUsers");
+                    while (rs.next())
+                    {
+                        String emailReturn = rs.getString("EMAIL");
+                        if (email.equals(emailReturn))
+                        {
+                            rs.close();
+                            conn.close();
+                            returnedResult = ConnectionData.OK;
+                            break;
+                        }
+                    }                    
+                    break;
+                }
+                case constToken:
+                {
+                    ResultSet rs = stselect.executeQuery("select * from MESSAGING where EMAIL LIKE '" + email + "'");
+                    while (rs.next())
+                        {
+                            returnedResult = ConnectionData.OK;
+                            break;
+                        }
+                    rs.close();
+                    conn.close();
+                    break;
+                }
+                case constGroupTable:
+                {
+                    ResultSet rs = stselect.executeQuery("select * from SPORTEAMGROUPS where EMAIL LIKE '" + email + "' AND GAMENUMBER = " + gameNumber);
+                    while (rs.next())
+                        {
+                            returnedResult = ConnectionData.OK;
+                            break;
+                        }
+                    rs.close();
+                    conn.close();
+                    break;                    
+                }
+            }
+            
+        }
+        catch (Exception e)
+        {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, e);
+            return ConnectionData.SOMTHING_WRONG;
+        }
+        return returnedResult;
+    }
 }
